@@ -1,166 +1,159 @@
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
-public class HMSGUI extends JFrame {
+class EmployeeGUI extends JFrame {
+    private Employee employee;
 
-    private final Employee employee;
-    private final Roombooking roombooking;
-
-    public HMSGUI() {
+    public EmployeeGUI() {
         employee = new Employee();
-        roombooking = new Roombooking();
 
-        JFrame frame = new JFrame("Hospital Management System");
-        frame.setSize(500, 300);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Employee Operations");
+        setSize(400, 200);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Employee", createEmployeePanel());
-        tabbedPane.addTab("Inmates", createInmatesPanel());
-
-        frame.add(tabbedPane);
-
-        
-        frame.setLayout(new FlowLayout());
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
-
-    private JPanel createEmployeePanel() {
-        JPanel employeePanel = new JPanel();
-        employeePanel.setLayout(new GridLayout(3, 2));
-
-        
         JButton registerButton = new JButton("Register Employee");
-        JButton displayButton = new JButton("Display Employee");
+        JButton searchButton = new JButton("Search Employee");
         JButton updateButton = new JButton("Update Employee");
         JButton deleteButton = new JButton("Delete Employee");
+        JButton displayButton = new JButton("Display Employees");
 
- 
-        employeePanel.add(registerButton);
-        employeePanel.add(displayButton);
-        employeePanel.add(updateButton);
-        employeePanel.add(deleteButton);
+        JPanel panel = new JPanel();
+        panel.add(registerButton);
+        panel.add(searchButton);
+        panel.add(updateButton);
+        panel.add(deleteButton);
+        panel.add(displayButton);
+
+        add(panel);
 
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    String empId = employee.insert();
-                    JOptionPane.showMessageDialog(null, "Welcome! Your ID is " + empId);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                showRegisterDialog();
             }
         });
 
-        displayButton.addActionListener(new ActionListener() {
+        searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String name = JOptionPane.showInputDialog("Enter the name:");
-                try {
-                    employee.display(name);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                showSearchDialog();
             }
         });
 
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String name = JOptionPane.showInputDialog("Enter the name:");
-                String specialization = JOptionPane.showInputDialog("Enter the new specialization:");
-                try {
-                    employee.update(specialization, name);
-                    JOptionPane.showMessageDialog(null, "Employee details updated successfully!");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                showUpdateDialog();
             }
         });
 
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String name = JOptionPane.showInputDialog("Enter the name:");
-                try {
-                    employee.delete(name);
-                    JOptionPane.showMessageDialog(null, "Employee deleted successfully!");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                showDeleteDialog();
             }
         });
 
-        return employeePanel;
+        displayButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    employee.display();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error occurred while displaying employees.");
+                }
+            }
+        });
     }
 
-    private JPanel createInmatesPanel() {
-        JPanel inmatesPanel = new JPanel();
-        inmatesPanel.setLayout(new GridLayout(2, 2));
+    private void showRegisterDialog() {
+        JTextField nameField = new JTextField();
+        JTextField ageField = new JTextField();
+        JTextField addressField = new JTextField();
+        JTextField contactField = new JTextField();
+        JTextField specializationField = new JTextField();
 
-  
-        JButton registerInmatesButton = new JButton("Register Inmates");
-        JButton deleteInmatesButton = new JButton("Delete Inmates");
-        JButton displayRoomButton = new JButton("Display Room Details");
+        Object[] message = {
+                "Name:", nameField,
+                "Age:", ageField,
+                "Address:", addressField,
+                "Contact:", contactField,
+                "Specialization:", specializationField
+        };
 
+        int option = JOptionPane.showConfirmDialog(null, message, "Register Employee", JOptionPane.OK_CANCEL_OPTION);
 
-        inmatesPanel.add(registerInmatesButton);
-        inmatesPanel.add(deleteInmatesButton);
-        inmatesPanel.add(displayRoomButton);
+        if (option == JOptionPane.OK_OPTION) {
+            try {
+                String name = nameField.getText();
+                int age = Integer.parseInt(ageField.getText());
+                String address = addressField.getText();
+                long contact = Long.parseLong(contactField.getText());
+                String specialization = specializationField.getText();
 
-   
-        registerInmatesButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int inmates = Integer.parseInt(JOptionPane.showInputDialog("Enter number of inmates:"));
-                int roomNo = roombooking.roomAllocation(inmates);
-                try {
-                    roombooking.insert(roomNo, inmates);
-                    JOptionPane.showMessageDialog(null, "Room allocated: " + roomNo + "\nInmates registered successfully!");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                String empId = employee.insert(name, age, address, contact, specialization);
+                JOptionPane.showMessageDialog(null, "Employee Registered Successfully!\nEmployee ID: " + empId);
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error occurred while registering employee.");
             }
-        });
+        }
+    }
 
-        deleteInmatesButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int roomNo = Integer.parseInt(JOptionPane.showInputDialog("Enter the Room No.:"));
-                try {
-                    roombooking.delete(roomNo);
-                    JOptionPane.showMessageDialog(null, "Inmates deleted successfully!");
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+    private void showSearchDialog() {
+        String empId = JOptionPane.showInputDialog("Enter Employee ID:");
+        try {
+            employee.search(empId);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error occurred while searching for employee.");
+        }
+    }
+
+    private void showUpdateDialog() {
+        JTextField nameField = new JTextField();
+        JTextField specializationField = new JTextField();
+
+        Object[] message = {
+                "Name:", nameField,
+                "New Specialization:", specializationField
+        };
+
+        int option = JOptionPane.showConfirmDialog(null, message, "Update Employee", JOptionPane.OK_CANCEL_OPTION);
+
+        if (option == JOptionPane.OK_OPTION) {
+            try {
+                String name = nameField.getText();
+                String specialization = specializationField.getText();
+
+                employee.update(specialization, name);
+                JOptionPane.showMessageDialog(null, name + " updated to " + specialization);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error occurred while updating employee.");
             }
-        });
+        }
+    }
 
-        displayRoomButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int roomNo = Integer.parseInt(JOptionPane.showInputDialog("Enter Room No.:"));
-                try {
-                    roombooking.display(roomNo);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
-        return inmatesPanel;
+    private void showDeleteDialog() {
+        String name = JOptionPane.showInputDialog("Enter Employee Name:");
+        try {
+            employee.delete(name);
+            JOptionPane.showMessageDialog(null, name + " deleted successfully.");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error occurred while deleting employee.");
+        }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new HMSGUI();
+                new EmployeeGUI().setVisible(true);
             }
         });
     }
